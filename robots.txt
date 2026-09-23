@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://drashtibaser.com/sitemap.xml
+Sitemap: https://rushabh023.github.io/drashti-baser-portfolio/sitemap.xml
