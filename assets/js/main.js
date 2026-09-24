@@ -2,10 +2,13 @@
   var d = document, header = d.querySelector(".site-header");
   var menuBtn = d.querySelector(".menu-btn"), menu = d.querySelector(".menu");
   var closeBtn = menu.querySelector(".menu-close");
+  var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   d.documentElement.classList.add("is-ready");
+
   function onScroll() { header.classList.toggle("is-scrolled", scrollY > 8); }
   onScroll();
   addEventListener("scroll", onScroll, { passive: true });
+
   function setOpen(open) {
     menu.hidden = !open;
     menuBtn.setAttribute("aria-expanded", String(open));
@@ -24,6 +27,7 @@
     e.preventDefault();
     q[(i + (e.shiftKey ? -1 : 1) + q.length) % q.length].focus();
   });
+
   function show(src, sel, flag) {
     var probe = new Image();
     probe.onload = function () {
@@ -41,6 +45,7 @@
   cut.onerror = function () { show("assets/img/drashti.jpg", ".portrait--photo", "has-photo"); };
   cut.src = "assets/img/drashti-cutout.png";
   show("assets/img/drashti-2.jpg", ".portrait--second", "has-second");
+
   var links = [].filter.call(d.querySelectorAll(".nav a[href^='#'], .menu a[href^='#']"), function (a) {
     return !a.closest("[hidden]");
   });
@@ -67,4 +72,18 @@
     current(best || "hero");
   }, { rootMargin: "-80px 0px -45% 0px", threshold: 0 });
   sections.forEach(function (section) { watch.observe(section); });
+
+  function markIn(el) { el.classList.add("is-in"); }
+  if (reduce) {
+    d.querySelectorAll(".reveal, .side-panel").forEach(markIn);
+  } else {
+    var reveal = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        markIn(entry.target);
+        reveal.unobserve(entry.target);
+      });
+    }, { rootMargin: "0px 0px -6% 0px", threshold: 0.1 });
+    d.querySelectorAll(".reveal, .side-panel").forEach(function (el) { reveal.observe(el); });
+  }
 })();
