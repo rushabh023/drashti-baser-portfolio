@@ -120,15 +120,21 @@
   var newsFallback = d.getElementById("law-news-fallback");
   var newsStatus = d.getElementById("law-desk-status");
   if (newsList && newsFallback && newsStatus) {
-    var rssQuery = 'law students OR "legal education" OR CLAT OR "Bar Council" India';
-    var rssUrl = "https://news.google.com/rss/search?q=" + encodeURIComponent(rssQuery) +
-      "&hl=en-IN&gl=IN&ceid=IN:en";
-    var feedApi = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(rssUrl);
+    var FREE_NEWS = "https://freenewsapi.ai/v1/search";
+    var fields = "title,url,published_at,sitename,host";
 
-    function splitTitle(raw) {
-      var parts = String(raw || "").split(" - ");
-      if (parts.length < 2) return { title: raw, source: "News" };
-      return { title: parts.slice(0, -1).join(" - ").trim(), source: parts[parts.length - 1].trim() };
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function decodeEntities(value) {
+      var box = d.createElement("textarea");
+      box.innerHTML = String(value || "");
+      return box.value;
     }
 
     function formatDate(value) {
@@ -137,45 +143,111 @@
       return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
     }
 
+    function sourceLabel(item) {
+      var host = (item.host || "").toLowerCase();
+      if (host.indexOf("livelaw") !== -1) return "LiveLaw";
+      if (host.indexOf("barandbench") !== -1) return "Bar & Bench";
+      var name = decodeEntities(item.sitename || "").replace(/\s+/g, " ").trim();
+      if (name && name.length < 40) return name;
+      return host || "News";
+    }
+
     function showFallback() {
       newsList.hidden = true;
       newsFallback.hidden = false;
       newsStatus.textContent = "Offline — try the desks below";
     }
 
-    fetch(feedApi)
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        if (!data || data.status !== "ok" || !data.items || !data.items.length) {
-          return showFallback();
-        }
-        var seen = {};
-        var items = [];
-        data.items.forEach(function (item) {
-          if (items.length >= 5) return;
-          var parsed = splitTitle(item.title);
-          var key = parsed.title.toLowerCase().slice(0, 48);
-          if (seen[key]) return;
-          seen[key] = 1;
-          items.push({
-            title: parsed.title,
-            source: parsed.source,
-            link: item.link,
-            date: formatDate(item.pubDate)
+    function renderItems(items) {
+      if (!items.length) return showFallback();
+      newsList.innerHTML = items.map(function (item) {
+        return "<li><a href=\"" + escapeHtml(item.link) + "\" target=\"_blank\" rel=\"noopener noreferrer\">" +
+          escapeHtml(item.title) + " <span class=\"sr-only\">(opens in a new tab)</span></a>" +
+          "<div class=\"news-meta\"><span>" + escapeHtml(item.source) + "</span>" +
+          (item.date ? "<span>" + escapeHtml(item.date) + "</span>" : "") +
+          "</div></li>";
+      }).join("");
+      newsFallback.hidden = true;
+      newsList.hidden = false;
+      newsStatus.textContent = "Live via free APIs";
+    }
+
+    function normalizeFreeNews(results) {
+      return (results || []).map(function (item) {
+        return {
+          title: decodeEntities(item.title || "").trim(),
+          link: item.url,
+          source: sourceLabel(item),
+          date: formatDate(item.published_at),
+          stamp: new Date(item.published_at).getTime() || 0
+        };
+      }).filter(function (item) { return item.title && item.link; });
+    }
+
+    function dedupeSort(list, limit) {
+      var seen = {};
+      var out = [];
+      list.sort(function (a, b) { return b.stamp - a.stamp; });
+      list.forEach(function (item) {
+        if (out.length >= limit) return;
+        var key = item.title.toLowerCase().slice(0, 52);
+        if (seen[key]) return;
+        seen[key] = 1;
+        out.push(item);
+      });
+      return out;
+    }
+
+    function loadGoogleFallback() {
+      var rssQuery = 'law students OR "legal education" OR CLAT OR "Bar Council" India';
+      var rssUrl = "https://news.google.com/rss/search?q=" + encodeURIComponent(rssQuery) +
+        "&hl=en-IN&gl=IN&ceid=IN:en";
+      var feedApi = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(rssUrl);
+      return fetch(feedApi)
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (!data || data.status !== "ok" || !data.items || !data.items.length) {
+            throw new Error("empty");
+          }
+          var items = data.items.map(function (item) {
+            var parts = String(item.title || "").split(" - ");
+            var title = parts.length > 1 ? parts.slice(0, -1).join(" - ").trim() : item.title;
+            var source = parts.length > 1 ? parts[parts.length - 1].trim() : "Google News";
+            return {
+              title: title,
+              link: item.link,
+              source: source,
+              date: formatDate(item.pubDate),
+              stamp: new Date(item.pubDate).getTime() || 0
+            };
           });
+          renderItems(dedupeSort(items, 5));
         });
-        if (!items.length) return showFallback();
-        newsList.innerHTML = items.map(function (item) {
-          return "<li><a href=\"" + item.link + "\" target=\"_blank\" rel=\"noopener noreferrer\">" +
-            item.title + " <span class=\"sr-only\">(opens in a new tab)</span></a>" +
-            "<div class=\"news-meta\"><span>" + item.source + "</span>" +
-            (item.date ? "<span>" + item.date + "</span>" : "") +
-            "</div></li>";
-        }).join("");
-        newsFallback.hidden = true;
-        newsList.hidden = false;
-        newsStatus.textContent = "Updated just now";
+    }
+
+    function freeNewsUrl(params) {
+      return FREE_NEWS + "?" + params + "&fields=" + encodeURIComponent(fields);
+    }
+
+    Promise.all([
+      fetch(freeNewsUrl("host=www.livelaw.in&size=4")).then(function (r) { return r.json(); }),
+      fetch(freeNewsUrl("host=www.barandbench.com&size=3")).then(function (r) { return r.json(); }),
+      fetch(freeNewsUrl("q=" + encodeURIComponent('"law students" OR CLAT OR "legal education" India') + "&size=4"))
+        .then(function (r) { return r.json(); })
+    ])
+      .then(function (packs) {
+        var merged = [];
+        packs.forEach(function (pack) {
+          if (pack && pack.results && pack.results.length) {
+            merged = merged.concat(normalizeFreeNews(pack.results));
+          }
+        });
+        var items = dedupeSort(merged, 6);
+        if (!items.length) throw new Error("empty");
+        renderItems(items);
       })
-      .catch(showFallback);
+      .catch(function () {
+        loadGoogleFallback().catch(showFallback);
+      });
   }
 })();
