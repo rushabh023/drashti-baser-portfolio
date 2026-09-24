@@ -331,6 +331,33 @@ html.is-ready .has-photo .portrait--photo,
 }
 .skills li:hover { color: var(--ink); transform: translateX(3px); }
 
+.law-desk {
+  margin-bottom: 48px; padding: 28px 24px; background: var(--white);
+  border: 1px solid var(--line);
+}
+.law-desk-head {
+  display: grid; gap: 8px; margin-bottom: 8px;
+}
+.law-desk-head h3 { margin: 0; }
+.law-desk-status { margin: 0; }
+.news-list { margin: 0; padding: 0; list-style: none; }
+.news-list li {
+  border-top: 1px solid var(--line); padding: 16px 0;
+}
+.news-list li:last-child { border-bottom: 1px solid var(--line); }
+.news-list a {
+  display: block; color: var(--ink); text-decoration: none;
+  font-family: var(--display); font-weight: 700; font-size: 1.02rem;
+  letter-spacing: 0.01em; line-height: 1.35;
+}
+.news-list a:hover { color: var(--accent); }
+.news-meta {
+  display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 8px;
+  color: var(--muted); font-size: 0.82rem; letter-spacing: 0.04em; text-transform: uppercase;
+}
+.news-fallback { margin-top: 12px; }
+.news-fallback .resource-list { margin-top: 12px; }
+
 .student-grid { display: grid; gap: 40px; margin-bottom: 40px; }
 .note-list, .resource-list { margin: 16px 0 0; padding: 0; list-style: none; }
 .note-list li, .resource-list li {
@@ -471,6 +498,10 @@ html.is-ready .has-photo .portrait--photo,
   .cert a { grid-column: 2; justify-self: start; }
   .skills { grid-template-columns: 1fr 1fr; gap: 36px; }
   .student-grid { grid-template-columns: 1fr 1fr; gap: 56px; }
+  .law-desk { padding: 32px; }
+  .law-desk-head {
+    grid-template-columns: 1fr auto; gap: 24px; align-items: end;
+  }
   .share-bar { grid-template-columns: 1.2fr auto; align-items: center; padding: 32px; }
   .footer-grid { grid-template-columns: 1.2fr 1fr; align-items: start; }
   .band .wrap { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 48px; align-items: end; }

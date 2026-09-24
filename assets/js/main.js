@@ -115,4 +115,67 @@
       }
     };
   }
+
+  var newsList = d.getElementById("law-news");
+  var newsFallback = d.getElementById("law-news-fallback");
+  var newsStatus = d.getElementById("law-desk-status");
+  if (newsList && newsFallback && newsStatus) {
+    var rssQuery = 'law students OR "legal education" OR CLAT OR "Bar Council" India';
+    var rssUrl = "https://news.google.com/rss/search?q=" + encodeURIComponent(rssQuery) +
+      "&hl=en-IN&gl=IN&ceid=IN:en";
+    var feedApi = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(rssUrl);
+
+    function splitTitle(raw) {
+      var parts = String(raw || "").split(" - ");
+      if (parts.length < 2) return { title: raw, source: "News" };
+      return { title: parts.slice(0, -1).join(" - ").trim(), source: parts[parts.length - 1].trim() };
+    }
+
+    function formatDate(value) {
+      var date = new Date(value);
+      if (isNaN(date.getTime())) return "";
+      return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    }
+
+    function showFallback() {
+      newsList.hidden = true;
+      newsFallback.hidden = false;
+      newsStatus.textContent = "Offline — try the desks below";
+    }
+
+    fetch(feedApi)
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data || data.status !== "ok" || !data.items || !data.items.length) {
+          return showFallback();
+        }
+        var seen = {};
+        var items = [];
+        data.items.forEach(function (item) {
+          if (items.length >= 5) return;
+          var parsed = splitTitle(item.title);
+          var key = parsed.title.toLowerCase().slice(0, 48);
+          if (seen[key]) return;
+          seen[key] = 1;
+          items.push({
+            title: parsed.title,
+            source: parsed.source,
+            link: item.link,
+            date: formatDate(item.pubDate)
+          });
+        });
+        if (!items.length) return showFallback();
+        newsList.innerHTML = items.map(function (item) {
+          return "<li><a href=\"" + item.link + "\" target=\"_blank\" rel=\"noopener noreferrer\">" +
+            item.title + " <span class=\"sr-only\">(opens in a new tab)</span></a>" +
+            "<div class=\"news-meta\"><span>" + item.source + "</span>" +
+            (item.date ? "<span>" + item.date + "</span>" : "") +
+            "</div></li>";
+        }).join("");
+        newsFallback.hidden = true;
+        newsList.hidden = false;
+        newsStatus.textContent = "Updated just now";
+      })
+      .catch(showFallback);
+  }
 })();
