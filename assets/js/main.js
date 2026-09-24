@@ -86,4 +86,33 @@
     }, { rootMargin: "0px 0px -6% 0px", threshold: 0.1 });
     d.querySelectorAll(".reveal, .side-panel").forEach(function (el) { reveal.observe(el); });
   }
+
+  var pageUrl = location.href.split("#")[0];
+  var shareText = "Portfolio of Drashti Baser — law student focused on litigation, legal research, and drafting.";
+  var wa = d.getElementById("share-whatsapp");
+  var li = d.getElementById("share-linkedin");
+  var copyBtn = d.getElementById("copy-link");
+  if (wa) wa.href = "https://wa.me/?text=" + encodeURIComponent(shareText + " " + pageUrl);
+  if (li) li.href = "https://www.linkedin.com/sharing/share-offsite/?url=" + encodeURIComponent(pageUrl);
+  if (copyBtn) {
+    copyBtn.onclick = function () {
+      var done = function () {
+        var label = copyBtn.getAttribute("data-copied") || "Link copied";
+        var prev = copyBtn.textContent;
+        copyBtn.textContent = label;
+        copyBtn.classList.add("is-copied");
+        setTimeout(function () {
+          copyBtn.textContent = prev;
+          copyBtn.classList.remove("is-copied");
+        }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(pageUrl).then(done).catch(function () {
+          window.prompt("Copy this link", pageUrl);
+        });
+      } else {
+        window.prompt("Copy this link", pageUrl);
+      }
+    };
+  }
 })();

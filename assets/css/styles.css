@@ -331,6 +331,58 @@ html.is-ready .has-photo .portrait--photo,
 }
 .skills li:hover { color: var(--ink); transform: translateX(3px); }
 
+.student-grid { display: grid; gap: 40px; margin-bottom: 40px; }
+.note-list, .resource-list { margin: 16px 0 0; padding: 0; list-style: none; }
+.note-list li, .resource-list li {
+  padding: 18px 0; border-top: 1px solid var(--line);
+}
+.note-list li:last-child, .resource-list li:last-child { border-bottom: 1px solid var(--line); }
+.note-list strong {
+  display: block; margin-bottom: 6px; color: var(--ink);
+  font-family: var(--display); font-size: 0.92rem; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase;
+}
+.note-list span, .resource-list span { color: var(--muted); font-size: 0.95rem; }
+.resource-list a {
+  display: inline-flex; align-items: center; gap: 8px; margin-bottom: 6px;
+  color: var(--ink); font-family: var(--display); font-weight: 700; font-size: 0.95rem;
+  letter-spacing: 0.02em; text-transform: uppercase; text-decoration: none;
+}
+.resource-list a:hover { color: var(--accent); }
+.resource-list a:hover .btn-arrow { transform: translateX(4px); }
+.resource-list li span { display: block; }
+
+.faq { margin-top: 8px; }
+.faq h3 { margin-bottom: 16px; }
+.faq details {
+  border-top: 1px solid var(--line); padding: 0;
+}
+.faq details:last-child { border-bottom: 1px solid var(--line); }
+.faq summary {
+  cursor: pointer; list-style: none; padding: 18px 36px 18px 0; position: relative;
+  color: var(--ink); font-family: var(--display); font-weight: 700; font-size: 0.95rem;
+  letter-spacing: 0.01em; text-transform: uppercase;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after {
+  content: "+"; position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+  color: var(--muted); font-size: 1.2rem; font-weight: 500;
+}
+.faq details[open] summary::after { content: "–"; color: var(--accent); }
+.faq details p {
+  margin: 0 0 18px; max-width: 62ch; color: var(--muted); padding-right: 28px;
+}
+
+.share-bar {
+  display: grid; gap: 20px; margin-top: 40px; padding: 28px 24px; background: var(--white);
+  border: 1px solid var(--line);
+}
+.share-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn-ghost {
+  background: transparent; color: var(--ink); border: 1px solid var(--ink);
+}
+.btn-ghost:hover { background: var(--ink); color: var(--white); }
+.btn.is-copied { background: var(--accent); }
+
 .band {
   background: var(--ink); color: var(--white);
   background-image:
@@ -418,6 +470,8 @@ html.is-ready .has-photo .portrait--photo,
   .row { grid-template-columns: 180px minmax(0, 1fr); column-gap: 28px; align-items: start; }
   .cert a { grid-column: 2; justify-self: start; }
   .skills { grid-template-columns: 1fr 1fr; gap: 36px; }
+  .student-grid { grid-template-columns: 1fr 1fr; gap: 56px; }
+  .share-bar { grid-template-columns: 1.2fr auto; align-items: center; padding: 32px; }
   .footer-grid { grid-template-columns: 1.2fr 1fr; align-items: start; }
   .band .wrap { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 48px; align-items: end; }
 }
